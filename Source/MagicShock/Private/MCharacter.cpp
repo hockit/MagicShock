@@ -4,8 +4,8 @@
 #include "MCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "MInteractionComponent.h"
 
 // Sets default values
 AMCharacter::AMCharacter()
@@ -17,6 +17,7 @@ AMCharacter::AMCharacter()
 	CameraComp->bUsePawnControlRotation = true;
 	CameraComp->SetupAttachment(RootComponent);
 
+	InteractionComp = CreateDefaultSubobject<UMInteractionComponent>("InteractionComp");
 	bIsCrouch = false;
 }
 
@@ -46,6 +47,7 @@ void AMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMCharacter::Jump);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMCharacter::Crouch);
+	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AMCharacter::PrimaryInteract);
 }
 
 void AMCharacter::MoveForward(float Value)
@@ -76,4 +78,12 @@ void AMCharacter::Crouch()
 		}
 	}
 	
+}
+
+void AMCharacter::PrimaryInteract()
+{
+	if (InteractionComp)
+	{
+		InteractionComp->PrimaryInteract();
+	}
 }

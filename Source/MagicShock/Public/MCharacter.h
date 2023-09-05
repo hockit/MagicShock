@@ -6,8 +6,8 @@
 #include "GameFramework/Character.h"
 #include "MCharacter.generated.h"
 
-class USpringArmComponent;
 class UCameraComponent;
+class UMInteractionComponent;
 
 UCLASS()
 class MAGICSHOCK_API AMCharacter : public ACharacter
@@ -22,17 +22,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USpringArmComponent* SpringArmComp;
-
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UMInteractionComponent* InteractionComp;
 
 	// FUNCTIONS
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Crouch();
+
+	void PrimaryInteract();
 
 	// VARIABLES
 
