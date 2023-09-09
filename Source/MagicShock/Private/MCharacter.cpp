@@ -2,10 +2,13 @@
 
 
 #include "MCharacter.h"
+#include "MBaseSpell.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "MInteractionComponent.h"
+
 
 // Sets default values
 AMCharacter::AMCharacter()
@@ -17,6 +20,9 @@ AMCharacter::AMCharacter()
 	CameraComp->bUsePawnControlRotation = true;
 	CameraComp->SetupAttachment(RootComponent);
 
+	LeftArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>("LeftArmMesh");
+	LeftArmMesh->SetupAttachment(CameraComp);
+
 	InteractionComp = CreateDefaultSubobject<UMInteractionComponent>("InteractionComp");
 	bIsCrouch = false;
 }
@@ -25,7 +31,11 @@ AMCharacter::AMCharacter()
 void AMCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	BaseSpell = GetWorld()->SpawnActor<AMBaseSpell>(SpellClass);
+	GetMesh()->HideBoneByName(TEXT("MagicSocket"), EPhysBodyOp::PBO_None);
+	BaseSpell->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("MagicSocket"));
+	BaseSpell->SetOwner(this);
 }
 
 // Called every frame
@@ -48,6 +58,7 @@ void AMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMCharacter::Jump);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMCharacter::Crouch);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AMCharacter::PrimaryInteract);
+	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &AMCharacter::PrimaryAttack);
 }
 
 void AMCharacter::MoveForward(float Value)
@@ -86,4 +97,9 @@ void AMCharacter::PrimaryInteract()
 	{
 		InteractionComp->PrimaryInteract();
 	}
+}
+
+void AMCharacter::PrimaryAttack()
+{
+	BaseSpell->Explode();
 }

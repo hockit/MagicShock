@@ -7,7 +7,9 @@
 #include "MCharacter.generated.h"
 
 class UCameraComponent;
+class USkeletalMeshComponent;
 class UMInteractionComponent;
+class AMBaseSpell;
 
 UCLASS()
 class MAGICSHOCK_API AMCharacter : public ACharacter
@@ -26,6 +28,9 @@ protected:
 	UCameraComponent* CameraComp;
 
 	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* LeftArmMesh;
+
+	UPROPERTY(VisibleAnywhere)
 	UMInteractionComponent* InteractionComp;
 
 	// FUNCTIONS
@@ -35,11 +40,18 @@ protected:
 	void Crouch();
 
 	void PrimaryInteract();
+	void PrimaryAttack();
+
 
 	// VARIABLES
 
 	bool bIsCrouch;
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AMBaseSpell> SpellClass;
+
+	UPROPERTY()
+	AMBaseSpell* BaseSpell;
 
 public:	
 	// Called every frame
