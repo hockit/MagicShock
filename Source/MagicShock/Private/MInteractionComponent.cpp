@@ -9,7 +9,7 @@
 // Sets default values for this component's properties
 UMInteractionComponent::UMInteractionComponent()
 {
-	
+	MaxRange = 300.f;
 }
 
 
@@ -22,7 +22,7 @@ void UMInteractionComponent::PrimaryInteract()
 
 	AActor* MyOwner = GetOwner();
 	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-	FVector EndLocation = EyeLocation + (EyeRotation.Vector() * 500);
+	FVector EndLocation = EyeLocation + (EyeRotation.Vector() * MaxRange);
 
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
