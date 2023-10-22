@@ -9,7 +9,9 @@
 class UCameraComponent;
 class USkeletalMeshComponent;
 class UMInteractionComponent;
-class AMBaseSpell;
+class USoundBase;
+class UMAttributeComponent;
+class UParticleSystemComponent;
 
 UCLASS()
 class MAGICSHOCK_API AMCharacter : public ACharacter
@@ -28,12 +30,37 @@ protected:
 	UCameraComponent* CameraComp;
 
 	UPROPERTY(VisibleAnywhere)
-	USkeletalMeshComponent* LeftArmMesh;
+	USkeletalMeshComponent* GunMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> ProjectileClass;
 
 	UPROPERTY(VisibleAnywhere)
 	UMInteractionComponent* InteractionComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UMAttributeComponent* AttributeComp;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UParticleSystem* MuzzleVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UParticleSystem* ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	USoundBase* MuzzleSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* HitSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Sound")
+	USoundBase* DeathSound;
+
 	// FUNCTIONS
+
+	UFUNCTION()
+	void OnHealthChange(AActor* InstigatorActor, UMAttributeComponent* OwnComp, float NewHealth, float Delta);
+	virtual void PostInitializeComponents() override;
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -41,17 +68,15 @@ protected:
 
 	void PrimaryInteract();
 	void PrimaryAttack();
+	void SecondaryAttack();
+	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
 
 
 	// VARIABLES
 
 	bool bIsCrouch;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AMBaseSpell> SpellClass;
-
-	UPROPERTY()
-	AMBaseSpell* BaseSpell;
+	float DamageAmount;
 
 public:	
 	// Called every frame

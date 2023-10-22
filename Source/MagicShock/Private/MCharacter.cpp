@@ -2,12 +2,15 @@
 
 
 #include "MCharacter.h"
-#include "MBaseSpell.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "MInteractionComponent.h"
+#include "MAttributeComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h"
+#include "Sound/SoundBase.h"
 
 
 // Sets default values
@@ -20,29 +23,19 @@ AMCharacter::AMCharacter()
 	CameraComp->bUsePawnControlRotation = true;
 	CameraComp->SetupAttachment(RootComponent);
 
-	LeftArmMesh = CreateDefaultSubobject<USkeletalMeshComponent>("LeftArmMesh");
-	LeftArmMesh->SetupAttachment(CameraComp);
+	GunMesh = CreateDefaultSubobject<USkeletalMeshComponent>("GunMesh");
+	GunMesh->SetupAttachment(CameraComp);
 
 	InteractionComp = CreateDefaultSubobject<UMInteractionComponent>("InteractionComp");
+	AttributeComp = CreateDefaultSubobject<UMAttributeComponent>("AttributeComp");
 	bIsCrouch = false;
+	DamageAmount = 20.f;
 }
 
-// Called when the game starts or when spawned
-void AMCharacter::BeginPlay()
+void AMCharacter::PostInitializeComponents()
 {
-	Super::BeginPlay();
-
-	BaseSpell = GetWorld()->SpawnActor<AMBaseSpell>(SpellClass);
-	GetMesh()->HideBoneByName(TEXT("MagicSocket"), EPhysBodyOp::PBO_None);
-	BaseSpell->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("MagicSocket"));
-	BaseSpell->SetOwner(this);
-}
-
-// Called every frame
-void AMCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	Super::PostInitializeComponents();
+	AttributeComp->OnHealthChange.AddDynamic(this, &AMCharacter::OnHealthChange);
 }
 
 // Called to bind functionality to input
@@ -59,7 +52,23 @@ void AMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMCharacter::Crouch);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AMCharacter::PrimaryInteract);
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &AMCharacter::PrimaryAttack);
+	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &AMCharacter::SecondaryAttack);
 }
+
+
+// Called when the game starts or when spawned
+void AMCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+// Called every frame
+void AMCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+}
+
 
 void AMCharacter::MoveForward(float Value)
 {
@@ -101,5 +110,72 @@ void AMCharacter::PrimaryInteract()
 
 void AMCharacter::PrimaryAttack()
 {
-	BaseSpell->Explode();
+	UGameplayStatics::SpawnEmitterAttached(MuzzleVFX, GunMesh, TEXT("MuzzleFlashSocket"));
+	UGameplayStatics::SpawnSoundAttached(MuzzleSound, GunMesh, TEXT("MuzzleFlashSocket"));
+
+	FVector Location = GetActorLocation();
+	FRotator Rotation = GetActorRotation();
+	GetActorEyesViewPoint(Location, Rotation);
+	FVector End = Location + Rotation.Vector() * 5000;
+
+	FHitResult Hit;
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bSuccess = GetWorld()->LineTraceSingleByObjectType(Hit, Location, End, ObjectParams, Params);
+	if (bSuccess)
+	{
+		DrawDebugPoint(GetWorld(), Hit.Location, 20, FColor::Blue, true);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactVFX, Hit.Location);
+
+		AActor* HitActor = Hit.GetActor();
+		if (HitActor != nullptr)
+		{
+			UMAttributeComponent* AttributeComponent = Cast<UMAttributeComponent>(HitActor->GetComponentByClass(UMAttributeComponent::StaticClass()));
+			if (AttributeComponent)
+			{
+				AttributeComponent->ApplyHealthChange(-DamageAmount);
+			}
+		}
+	}
+}
+
+
+void AMCharacter::SecondaryAttack()
+{
+	SpawnProjectile(ProjectileClass);
+}
+
+void AMCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
+{
+	if (ensureAlways(ClassToSpawn))
+	{
+		FVector PlayerLocation = GunMesh->GetSocketLocation("MuzzleFlashSocket");
+		FRotator PlayerRotation = CameraComp->GetComponentRotation();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
+
+		GetWorld()->SpawnActor<AActor>(ClassToSpawn, PlayerLocation, PlayerRotation, SpawnParams);
+	}
+}
+
+
+void AMCharacter::OnHealthChange(AActor* InstigatorActor, UMAttributeComponent* OwnComp, float NewHealth, float Delta)
+{
+	if (NewHealth <= 0.f && Delta < 0.f)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), DeathSound, this->GetActorLocation());
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		DisableInput(PlayerController);
+	}
+	else
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), HitSound, this->GetActorLocation());
+	}
 }
