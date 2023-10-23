@@ -33,22 +33,16 @@ protected:
 	USkeletalMeshComponent* GunMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> ProjectileClass;
+	TSubclassOf<AActor> PrimaryClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AActor> SecondaryClass;
 
 	UPROPERTY(VisibleAnywhere)
 	UMInteractionComponent* InteractionComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UMAttributeComponent* AttributeComp;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	UParticleSystem* MuzzleVFX;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	UParticleSystem* ImpactVFX;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	USoundBase* MuzzleSound;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Sound")
 	USoundBase* HitSound;
@@ -65,8 +59,11 @@ protected:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Crouch();
+	void StartSprint();
+	void StopSprint();
 
 	void PrimaryInteract();
+
 	void PrimaryAttack();
 	void SecondaryAttack();
 	void SpawnProjectile(TSubclassOf<AActor> ClassToSpawn);
@@ -75,8 +72,7 @@ protected:
 	// VARIABLES
 
 	bool bIsCrouch;
-
-	float DamageAmount;
+	bool bIsSprint;
 
 public:	
 	// Called every frame

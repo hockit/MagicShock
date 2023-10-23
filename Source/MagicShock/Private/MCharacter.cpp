@@ -29,7 +29,7 @@ AMCharacter::AMCharacter()
 	InteractionComp = CreateDefaultSubobject<UMInteractionComponent>("InteractionComp");
 	AttributeComp = CreateDefaultSubobject<UMAttributeComponent>("AttributeComp");
 	bIsCrouch = false;
-	DamageAmount = 20.f;
+	bIsSprint = false;
 }
 
 void AMCharacter::PostInitializeComponents()
@@ -50,6 +50,8 @@ void AMCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AMCharacter::Jump);
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AMCharacter::Crouch);
+	PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AMCharacter::StartSprint);
+	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AMCharacter::StopSprint);
 	PlayerInputComponent->BindAction("PrimaryInteract", IE_Pressed, this, &AMCharacter::PrimaryInteract);
 	PlayerInputComponent->BindAction("PrimaryAttack", IE_Pressed, this, &AMCharacter::PrimaryAttack);
 	PlayerInputComponent->BindAction("SecondaryAttack", IE_Pressed, this, &AMCharacter::SecondaryAttack);
@@ -100,6 +102,18 @@ void AMCharacter::Crouch()
 	
 }
 
+void AMCharacter::StartSprint()
+{
+		GetCharacterMovement()->MaxWalkSpeed = 1200.f;
+		bIsSprint = true;
+}
+
+void AMCharacter::StopSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
+	bIsSprint = false;
+}
+
 void AMCharacter::PrimaryInteract()
 {
 	if (InteractionComp)
@@ -110,45 +124,13 @@ void AMCharacter::PrimaryInteract()
 
 void AMCharacter::PrimaryAttack()
 {
-	UGameplayStatics::SpawnEmitterAttached(MuzzleVFX, GunMesh, TEXT("MuzzleFlashSocket"));
-	UGameplayStatics::SpawnSoundAttached(MuzzleSound, GunMesh, TEXT("MuzzleFlashSocket"));
-
-	FVector Location = GetActorLocation();
-	FRotator Rotation = GetActorRotation();
-	GetActorEyesViewPoint(Location, Rotation);
-	FVector End = Location + Rotation.Vector() * 5000;
-
-	FHitResult Hit;
-	FCollisionObjectQueryParams ObjectParams;
-	ObjectParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	ObjectParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	bool bSuccess = GetWorld()->LineTraceSingleByObjectType(Hit, Location, End, ObjectParams, Params);
-	if (bSuccess)
-	{
-		DrawDebugPoint(GetWorld(), Hit.Location, 20, FColor::Blue, true);
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactVFX, Hit.Location);
-
-		AActor* HitActor = Hit.GetActor();
-		if (HitActor != nullptr)
-		{
-			UMAttributeComponent* AttributeComponent = Cast<UMAttributeComponent>(HitActor->GetComponentByClass(UMAttributeComponent::StaticClass()));
-			if (AttributeComponent)
-			{
-				AttributeComponent->ApplyHealthChange(-DamageAmount);
-			}
-		}
-	}
+	SpawnProjectile(PrimaryClass);
 }
 
 
 void AMCharacter::SecondaryAttack()
 {
-	SpawnProjectile(ProjectileClass);
+	SpawnProjectile(SecondaryClass);
 }
 
 void AMCharacter::SpawnProjectile(TSubclassOf<AActor> ClassToSpawn)
