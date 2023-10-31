@@ -15,10 +15,10 @@ void UMBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, u
 		AActor* TargetActor = Cast<AActor>(BlackboardComp->GetValueAsObject("TargetActor"));
 		if (TargetActor)
 		{
-			AAIController* MyController = OwnerComp.GetAIOwner();
-			if (ensure(MyController))
+			AAIController* AIController = OwnerComp.GetAIOwner();
+			if (ensure(AIController))
 			{
-				APawn* AIPawn = MyController->GetPawn();
+				APawn* AIPawn = AIController->GetPawn();
 				if (ensure(AIPawn))
 				{
 					float DistanceTo = FVector::Distance(TargetActor->GetActorLocation(), AIPawn->GetActorLocation());
@@ -27,7 +27,7 @@ void UMBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, u
 					bool bHasLineOfSight = false;
 					if (bWithinRange)
 					{
-						bHasLineOfSight = MyController->LineOfSightTo(TargetActor);
+						bHasLineOfSight = AIController->LineOfSightTo(TargetActor);
 					}
 
 					BlackboardComp->SetValueAsBool(AttackRangeKey.SelectedKeyName, (bWithinRange && bHasLineOfSight));
