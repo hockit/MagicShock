@@ -19,11 +19,15 @@ AMPickupItem::AMPickupItem()
 
 void AMPickupItem::Interact_Implementation(APawn* InstigatorPawn)
 {
-	UGameplayStatics::SpawnEmitterAtLocation(this, EffectVFX, GetActorLocation());
 	UMAttributeComponent* AttributeComp = Cast<UMAttributeComponent>(InstigatorPawn->GetComponentByClass(UMAttributeComponent::StaticClass()));
 	if (AttributeComp && !AttributeComp->IsFullHealth())
 	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, EffectVFX, GetActorLocation());
 		AttributeComp->ApplyHealthChange(20.f);
+		Destroy();
 	}
-	Destroy();
+	else
+	{
+		UE_LOG(LogTemp, Display, TEXT("You have full health!"));
+	}
 }

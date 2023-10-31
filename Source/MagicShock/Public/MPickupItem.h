@@ -15,7 +15,7 @@ class MAGICSHOCK_API AMPickupItem : public AActor, public IMGameplayInterface
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	
 	AMPickupItem();
 
 	void Interact_Implementation(APawn* InstigatorPawn);

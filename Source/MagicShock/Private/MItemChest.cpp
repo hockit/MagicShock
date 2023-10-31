@@ -6,7 +6,6 @@
 #include "Particles/ParticleSystemComponent.h"
 
 
-// Sets default values
 AMItemChest::AMItemChest()
 {
     BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>("BaseMesh");

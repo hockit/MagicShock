@@ -16,7 +16,7 @@ class MAGICSHOCK_API AMItemChest : public AActor, public IMGameplayInterface
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	
 	AMItemChest();
 
 	UPROPERTY(EditAnywhere)

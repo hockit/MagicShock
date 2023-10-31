@@ -15,7 +15,7 @@ class MAGICSHOCK_API UMAttributeComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
+	
 	UMAttributeComponent();
 
 	UPROPERTY(BlueprintAssignable)
@@ -27,8 +27,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool ApplyHealthChange(float Delta);
 
+	UFUNCTION(BlueprintCallable)
+	bool IsFullHealth() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetHealthMax() const;
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHealth() const;
+
 protected:
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Health;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float MaxHealth;
 };

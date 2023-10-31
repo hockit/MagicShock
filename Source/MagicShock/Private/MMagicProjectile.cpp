@@ -7,7 +7,6 @@
 
 AMMagicProjectile::AMMagicProjectile()
 {
-	SphereComp->SetSphereRadius(20.f);
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &AMMagicProjectile::OnActorOverlap);
 
 	DamageAmount = 25.f;
