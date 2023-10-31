@@ -9,6 +9,7 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 class UParticleSystemComponent;
+class USoundCue;
 
 UCLASS(ABSTRACT)
 class MAGICSHOCK_API AMBaseProjectile : public AActor
@@ -21,8 +22,14 @@ public:
 
 protected:
 
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	float DamageAmount;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	UParticleSystem* ImpactVFX;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	USoundCue* ImpactCue;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* SphereComp;
