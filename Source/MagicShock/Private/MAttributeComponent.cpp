@@ -3,10 +3,10 @@
 
 #include "MAttributeComponent.h"
 
-// Sets default values for this component's properties
 UMAttributeComponent::UMAttributeComponent()
 {
-	Health = 100.f;
+	MaxHealth = 100.f;
+	Health = MaxHealth;
 }
 
 bool UMAttributeComponent::IsAlive() const
@@ -14,11 +14,29 @@ bool UMAttributeComponent::IsAlive() const
 	return Health > 0.f;
 }
 
-bool UMAttributeComponent::ApplyHealthChange(float Delta)
+float UMAttributeComponent::GetHealthMax() const
 {
-	Health += Delta;
-
-	OnHealthChange.Broadcast(nullptr, this, Health, Delta);
-
-	return true;
+	return MaxHealth;
 }
+
+float UMAttributeComponent::GetCurrentHealth() const
+{
+	return Health;
+}
+
+bool UMAttributeComponent::IsFullHealth() const
+{
+	return Health == MaxHealth;
+}
+
+bool UMAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
+{
+	float OldHealth = Health;
+	Health = FMath::Clamp(Health + Delta, 0.f, MaxHealth);
+
+	float ActualDelta = Health - OldHealth;
+	OnHealthChange.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	return ActualDelta != 0;
+}
+
